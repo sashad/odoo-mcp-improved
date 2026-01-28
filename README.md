@@ -1,6 +1,11 @@
 
 # Odoo MCP Improved
 
+## Added by me:
+- Translated to English
+- An MCP http transport is added (see odoo_config.json.example)
+---------------
+
 ![demo.gif](demo.gif)
 
 <div align="center">

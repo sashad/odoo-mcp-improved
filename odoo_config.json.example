@@ -2,5 +2,8 @@
   "url": "https://your-odoo-instance.com",
   "db": "your-database-name",
   "username": "your-username",
-  "password": "your-password-or-api-key"
+  "password": "your-password-or-api-key",
+  "// comment": "The following parameters are optional when configuring an HTTP transport.",
+  "mcp_http_host": "127.0.0.1",
+  "mcp_http_port": 8000
 } 
