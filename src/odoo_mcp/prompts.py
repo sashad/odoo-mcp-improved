@@ -1,87 +1,87 @@
 """
-Implementación de prompts para MCP-Odoo
+Implementation of prompts for MCP-Odoo
 """
 
 from mcp.server.fastmcp import FastMCP
 
 def register_sales_prompts(mcp: FastMCP) -> None:
-    """Registra prompts relacionados con ventas"""
+    """Registers sales-related prompts"""
     
     @mcp.prompt(
         name="sales_analysis",
-        description="Analiza las ventas de un período específico y proporciona insights clave"
+        description="Analyzes sales for a specific period and provides key insights"
     )
     def sales_analysis_prompt() -> str:
         return """
-        Analiza las ventas del último {period} (ej. 'month', 'quarter', 'year') y proporciona insights sobre:
-        - Productos más vendidos (top 5)
-        - Clientes principales (top 5)
-        - Tendencias de ventas (comparación con período anterior si es posible)
-        - Rendimiento por vendedor (si aplica)
-        - Recomendaciones accionables para mejorar las ventas.
+        Analyze sales for the last {period} (e.g., 'month', 'quarter', 'year') and provide insights on:
+        - Top selling products (top 5)
+        - Main customers (top 5)
+        - Sales trends (comparison with the previous period if possible)
+        - Performance by salesperson (if applicable)
+        - Actionable recommendations to improve sales.
         
-        Utiliza las herramientas disponibles como 'search_sales_orders' y 'execute_method' para obtener los datos necesarios de Odoo.
+        Use the available tools like 'search_sales_orders' and 'execute_method' to get the necessary data from Odoo.
         """
 
 def register_purchase_prompts(mcp: FastMCP) -> None:
-    """Registra prompts relacionados con compras"""
+    """Registers purchase-related prompts"""
     
     @mcp.prompt(
         name="purchase_analysis",
-        description="Analiza las órdenes de compra y el rendimiento de proveedores"
+        description="Analyzes purchase orders and supplier performance"
     )
     def purchase_analysis_prompt() -> str:
         return """
-        Analiza las compras realizadas en el último {period} (ej. 'month', 'quarter', 'year') y proporciona insights sobre:
-        - Productos más comprados (top 5)
-        - Proveedores principales (top 5 por volumen/valor)
-        - Tendencias de compras
-        - Plazos de entrega promedio por proveedor
-        - Recomendaciones para optimizar compras o negociar con proveedores.
+        Analyze purchases made in the last {period} (e.g., 'month', 'quarter', 'year') and provide insights on:
+        - Most purchased products (top 5)
+        - Main suppliers (top 5 by volume/value)
+        - Purchase trends
+        - Average delivery times per supplier
+        - Recommendations for optimizing purchases or negotiating with suppliers.
         
-        Utiliza las herramientas disponibles como 'search_purchase_orders' para obtener los datos necesarios de Odoo.
+        Use the available tools like 'search_purchase_orders' to get the necessary data from Odoo.
         """
 
 def register_inventory_prompts(mcp: FastMCP) -> None:
-    """Registra prompts relacionados con inventario"""
+    """Registers inventory-related prompts"""
     
     @mcp.prompt(
         name="inventory_management",
-        description="Analiza el estado del inventario y proporciona recomendaciones"
+        description="Analyzes inventory status and provides recommendations"
     )
     def inventory_management_prompt() -> str:
         return """
-        Analiza el estado actual del inventario y proporciona información sobre:
-        - Productos con bajo stock (por debajo del mínimo si está configurado)
-        - Productos con exceso de stock (por encima del máximo o sin movimiento)
-        - Valoración actual del inventario
-        - Rotación de inventario para productos clave
-        - Recomendaciones para ajustes, reabastecimiento o liquidación de stock.
+        Analyze the current inventory status and provide information on:
+        - Products with low stock (below the minimum if configured)
+        - Products with excess stock (above the maximum or without movement)
+        - Current inventory valuation
+        - Inventory turnover for key products
+        - Recommendations for adjustments, replenishment, or stock liquidation.
         
-        Utiliza las herramientas disponibles como 'check_product_availability' y 'analyze_inventory_turnover' para obtener los datos necesarios de Odoo.
+        Use the available tools like 'check_product_availability' and 'analyze_inventory_turnover' to get the necessary data from Odoo.
         """
 
 def register_accounting_prompts(mcp: FastMCP) -> None:
-    """Registra prompts relacionados con contabilidad"""
+    """Registers accounting-related prompts"""
     
     @mcp.prompt(
         name="financial_analysis",
-        description="Realiza un análisis financiero básico"
+        description="Performs a basic financial analysis"
     )
     def financial_analysis_prompt() -> str:
         return """
-        Realiza un análisis financiero para el período {period} (ej. 'last_month', 'last_quarter', 'year_to_date') y proporciona:
-        - Resumen del estado de resultados (ingresos, gastos, beneficio)
-        - Resumen del balance general (activos, pasivos, patrimonio)
-        - Ratios financieros clave (ej. liquidez, rentabilidad)
-        - Comparación con el período anterior si es posible
-        - Observaciones o alertas importantes.
+        Perform a financial analysis for the {period} (e.g., 'last_month', 'last_quarter', 'year_to_date') and provide:
+        - Summary of the income statement (revenue, expenses, profit)
+        - Summary of the balance sheet (assets, liabilities, equity)
+        - Key financial ratios (e.g., liquidity, profitability)
+        - Comparison with the previous period if possible
+        - Important observations or alerts.
         
-        Utiliza las herramientas disponibles como 'search_journal_entries' y 'analyze_financial_ratios' para obtener los datos necesarios de Odoo.
+        Use the available tools like 'search_journal_entries' and 'analyze_financial_ratios' to get the necessary data from Odoo.
         """
 
 def register_all_prompts(mcp: FastMCP) -> None:
-    """Registra todos los prompts disponibles"""
+    """Registers all available prompts"""
     register_sales_prompts(mcp)
     register_purchase_prompts(mcp)
     register_inventory_prompts(mcp)

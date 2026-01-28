@@ -1,5 +1,5 @@
 """
-Script de validación para probar las nuevas funcionalidades del MCP-Odoo
+Validation script to test the new functionalities of MCP-Odoo
 """
 
 import os
@@ -8,7 +8,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-# Añadir el directorio src al path para poder importar odoo_mcp
+# Add the src directory to the path to be able to import odoo_mcp
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.odoo_mcp.odoo_client import get_odoo_client, OdooClient
@@ -21,7 +21,7 @@ from src.odoo_mcp.models import (
 )
 
 class ValidationContext:
-    """Contexto simulado para pruebas"""
+    """Simulated context for testing"""
     
     class RequestContext:
         def __init__(self, odoo_client):
@@ -31,74 +31,74 @@ class ValidationContext:
         self.request_context = self.RequestContext(odoo_client)
 
 def run_validation():
-    """Ejecuta pruebas de validación para todas las nuevas funcionalidades"""
+    """Runs validation tests for all new functionalities"""
     
-    print("Iniciando validación de MCP-Odoo mejorado...")
+    print("Starting validation of improved MCP-Odoo...")
     
-    # Obtener cliente Odoo
+    # Get Odoo client
     try:
         odoo_client = get_odoo_client()
-        print("✅ Conexión con Odoo establecida correctamente")
+        print("✅ Connection with Odoo established successfully")
     except Exception as e:
-        print(f"❌ Error al conectar con Odoo: {str(e)}")
+        print(f"❌ Error connecting to Odoo: {str(e)}")
         return False
     
-    # Crear contexto simulado
+    # Create simulated context
     ctx = ValidationContext(odoo_client)
     
-    # Validar herramientas de ventas
-    print("\n=== Validando herramientas de ventas ===")
+    # Validate sales tools
+    print("\n=== Validating sales tools ===")
     
     try:
         from src.odoo_mcp.tools_sales import search_sales_orders
         
-        # Crear filtro de prueba
+        # Create test filter
         filter_params = SalesOrderFilter(
             date_from=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
             date_to=datetime.now().strftime("%Y-%m-%d"),
             limit=5
         )
         
-        # Ejecutar búsqueda
+        # Execute search
         result = search_sales_orders(ctx, filter_params)
         
         if result.get("success"):
-            print(f"✅ search_sales_orders: Encontradas {result['result']['count']} órdenes de venta")
+            print(f"✅ search_sales_orders: Found {result['result']['count']} sales orders")
         else:
-            print(f"❌ search_sales_orders: {result.get('error', 'Error desconocido')}")
+            print(f"❌ search_sales_orders: {result.get('error', 'Unknown error')}")
     except Exception as e:
-        print(f"❌ Error al validar search_sales_orders: {str(e)}")
+        print(f"❌ Error validating search_sales_orders: {str(e)}")
     
-    # Validar herramientas de compras
-    print("\n=== Validando herramientas de compras ===")
+    # Validate purchase tools
+    print("\n=== Validating purchase tools ===")
     
     try:
         from src.odoo_mcp.tools_purchase import search_purchase_orders
         
-        # Crear filtro de prueba
+        # Create test filter
         filter_params = PurchaseOrderFilter(
             date_from=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
             date_to=datetime.now().strftime("%Y-%m-%d"),
             limit=5
         )
         
-        # Ejecutar búsqueda
+        # Execute search
         result = search_purchase_orders(ctx, filter_params)
         
         if result.get("success"):
-            print(f"✅ search_purchase_orders: Encontradas {result['result']['count']} órdenes de compra")
+            print(f"✅ search_purchase_orders: Found {result['result']['count']} purchase orders")
         else:
-            print(f"❌ search_purchase_orders: {result.get('error', 'Error desconocido')}")
+            print(f"❌ search_purchase_orders: {result.get('error', 'Unknown error')}")
     except Exception as e:
-        print(f"❌ Error al validar search_purchase_orders: {str(e)}")
+        print(f"❌ Error validating search_purchase_orders: {str(e)}")
     
-    # Validar herramientas de inventario
-    print("\n=== Validando herramientas de inventario ===")
+    # Validate inventory tools
+    print("\n=== Validating inventory tools ===")
     
     try:
         from src.odoo_mcp.tools_inventory import check_product_availability
         
-        # Obtener algunos IDs de productos
+        # Get some product IDs
         products = odoo_client.search_read(
             "product.product",
             [("type", "=", "product")],
@@ -109,118 +109,118 @@ def run_validation():
         if products:
             product_ids = [p["id"] for p in products]
             
-            # Crear parámetros de prueba
+            # Create test parameters
             params = ProductAvailabilityInput(
                 product_ids=product_ids
             )
             
-            # Ejecutar verificación
+            # Execute check
             result = check_product_availability(ctx, params)
             
             if result.get("success"):
-                print(f"✅ check_product_availability: Verificados {len(result['result']['products'])} productos")
+                print(f"✅ check_product_availability: Verified {len(result['result']['products'])} products")
             else:
-                print(f"❌ check_product_availability: {result.get('error', 'Error desconocido')}")
+                print(f"❌ check_product_availability: {result.get('error', 'Unknown error')}")
         else:
-            print("⚠️ No se encontraron productos para validar check_product_availability")
+            print("⚠️ No products found to validate check_product_availability")
     except Exception as e:
-        print(f"❌ Error al validar check_product_availability: {str(e)}")
+        print(f"❌ Error validating check_product_availability: {str(e)}")
     
-    # Validar herramientas de contabilidad
-    print("\n=== Validando herramientas de contabilidad ===")
+    # Validate accounting tools
+    print("\n=== Validating accounting tools ===")
     
     try:
-        from src.odoo_mcp.tools_accounting import search_journal_entries
+        from src.odoo_mcp.tools_accountings import search_journal_entries
         
-        # Crear filtro de prueba
+        # Create test filter
         filter_params = JournalEntryFilter(
             date_from=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
             date_to=datetime.now().strftime("%Y-%m-%d"),
             limit=5
         )
         
-        # Ejecutar búsqueda
+        # Execute search
         result = search_journal_entries(ctx, filter_params)
         
         if result.get("success"):
-            print(f"✅ search_journal_entries: Encontrados {result['result']['count']} asientos contables")
+            print(f"✅ search_journal_entries: Found {result['result']['count']} journal entries")
         else:
-            print(f"❌ search_journal_entries: {result.get('error', 'Error desconocido')}")
+            print(f"❌ search_journal_entries: {result.get('error', 'Unknown error')}")
     except Exception as e:
-        print(f"❌ Error al validar search_journal_entries: {str(e)}")
+        print(f"❌ Error validating search_journal_entries: {str(e)}")
     
     try:
-        from src.odoo_mcp.tools_accounting import analyze_financial_ratios
+        from src.odoo_mcp.tools_accountings import analyze_financial_ratios
         
-        # Crear parámetros de prueba
+        # Create test parameters
         params = FinancialRatioInput(
             date_from=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
             date_to=datetime.now().strftime("%Y-%m-%d"),
             ratios=["liquidity", "profitability", "debt"]
         )
         
-        # Ejecutar análisis
+        # Execute analysis
         result = analyze_financial_ratios(ctx, params)
         
         if result.get("success"):
-            print(f"✅ analyze_financial_ratios: Análisis completado con {len(result['result']['ratios'])} ratios")
+            print(f"✅ analyze_financial_ratios: Analysis completed with {len(result['result']['ratios'])} ratios")
         else:
-            print(f"❌ analyze_financial_ratios: {result.get('error', 'Error desconocido')}")
+            print(f"❌ analyze_financial_ratios: {result.get('error', 'Unknown error')}")
     except Exception as e:
-        print(f"❌ Error al validar analyze_financial_ratios: {str(e)}")
+        print(f"❌ Error validating analyze_financial_ratios: {str(e)}")
     
-    # Validar recursos
-    print("\n=== Validando recursos ===")
+    # Validate resources
+    print("\n=== Validating resources ===")
     
     try:
         from src.odoo_mcp.resources import register_sales_resources
-        print("✅ Recursos de ventas importados correctamente")
+        print("✅ Sales resources imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar recursos de ventas: {str(e)}")
+        print(f"❌ Error importing sales resources: {str(e)}")
     
     try:
         from src.odoo_mcp.resources import register_purchase_resources
-        print("✅ Recursos de compras importados correctamente")
+        print("✅ Purchase resources imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar recursos de compras: {str(e)}")
+        print(f"❌ Error importing purchase resources: {str(e)}")
     
     try:
         from src.odoo_mcp.resources import register_inventory_resources
-        print("✅ Recursos de inventario importados correctamente")
+        print("✅ Inventory resources imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar recursos de inventario: {str(e)}")
+        print(f"❌ Error importing inventory resources: {str(e)}")
     
     try:
         from src.odoo_mcp.resources import register_accounting_resources
-        print("✅ Recursos de contabilidad importados correctamente")
+        print("✅ Accounting resources imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar recursos de contabilidad: {str(e)}")
+        print(f"❌ Error importing accounting resources: {str(e)}")
     
-    # Validar prompts
-    print("\n=== Validando prompts ===")
+    # Validate prompts
+    print("\n=== Validating prompts ===")
     
     try:
         from src.odoo_mcp.prompts import register_all_prompts
-        print("✅ Prompts importados correctamente")
+        print("✅ Prompts imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar prompts: {str(e)}")
+        print(f"❌ Error importing prompts: {str(e)}")
     
-    # Validar integración completa
-    print("\n=== Validando integración completa ===")
+    # Validate full integration
+    print("\n=== Validating full integration ===")
     
     try:
         from src.odoo_mcp.extensions import register_all_extensions
-        print("✅ Módulo de extensiones importado correctamente")
+        print("✅ Extensions module imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar módulo de extensiones: {str(e)}")
+        print(f"❌ Error importing extensions module: {str(e)}")
     
     try:
         from src.odoo_mcp.server import mcp
-        print("✅ Servidor MCP importado correctamente")
+        print("✅ MCP server imported successfully")
     except Exception as e:
-        print(f"❌ Error al importar servidor MCP: {str(e)}")
+        print(f"❌ Error importing MCP server: {str(e)}")
     
-    print("\nValidación completada.")
+    print("\nValidation completed.")
     return True
 
 if __name__ == "__main__":

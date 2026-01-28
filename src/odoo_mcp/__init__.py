@@ -1,5 +1,5 @@
 """
-Actualización del archivo __init__.py para incluir todos los módulos
+Update of the __init__.py file to include all modules
 """
 
 from . import odoo_client
@@ -9,7 +9,7 @@ from . import prompts
 from . import tools_sales
 from . import tools_purchase
 from . import tools_inventory
-from . import tools_accounting
+from . import tools_accountings
 from . import resources
 from . import extensions
 
@@ -21,7 +21,7 @@ __all__ = [
     'tools_sales',
     'tools_purchase',
     'tools_inventory',
-    'tools_accounting',
+    'tools_accountings',
     'resources',
     'extensions'
 ]

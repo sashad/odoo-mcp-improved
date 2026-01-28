@@ -1,158 +1,158 @@
-# Documentación MCP-Odoo Mejorado
+# Improved MCP-Odoo Documentation
 
-## Introducción
+## Introduction
 
-Este documento describe las mejoras implementadas en el MCP (Model Context Protocol) para Odoo, que amplía significativamente las capacidades del repositorio original añadiendo nuevas herramientas, recursos y prompts para las áreas de ventas, compras, inventario y contabilidad.
+This document describes the improvements implemented in the MCP (Model Context Protocol) for Odoo, which significantly extends the capabilities of the original repository by adding new tools, resources, and prompts for sales, purchasing, inventory, and accounting areas.
 
-El objetivo de estas mejoras es proporcionar una integración más completa y funcional entre Odoo ERP y los modelos de lenguaje como Claude, permitiendo interacciones más ricas y útiles en contextos empresariales.
+The goal of these improvements is to provide a more complete and functional integration between Odoo ERP and language models like Claude, allowing for richer and more useful interactions in business contexts.
 
-## Arquitectura
+## Architecture
 
-La arquitectura del MCP-Odoo mejorado sigue un diseño modular que facilita la extensión y el mantenimiento:
+The architecture of the improved MCP-Odoo follows a modular design that facilitates extension and maintenance:
 
 ```
 mcp-odoo/
 ├── src/
 │   └── odoo_mcp/
-│       ├── __init__.py           # Inicialización del paquete
-│       ├── server.py             # Servidor MCP principal
-│       ├── odoo_client.py        # Cliente para conexión con Odoo
-│       ├── models.py             # Modelos Pydantic para validación
-│       ├── extensions.py         # Registro centralizado de extensiones
-│       ├── prompts.py            # Prompts para análisis y asistencia
-│       ├── resources.py          # Recursos MCP (URIs)
-│       ├── tools_sales.py        # Herramientas para ventas
-│       ├── tools_purchase.py     # Herramientas para compras
-│       ├── tools_inventory.py    # Herramientas para inventario
-│       └── tools_accounting.py   # Herramientas para contabilidad
-├── pyproject.toml               # Configuración del paquete
-├── Dockerfile                   # Configuración para Docker
-└── validation.py               # Script de validación
+│       ├── __init__.py           # Package initialization
+│       ├── server.py             # Main MCP server
+│       ├── odoo_client.py        # Client for Odoo connection
+│       ├── models.py             # Pydantic models for validation
+│       ├── extensions.py         # Centralized extension registration
+│       ├── prompts.py            # Prompts for analysis and assistance
+│       ├── resources.py          # MCP resources (URIs)
+│       ├── tools_sales.py        # Tools for sales
+│       ├── tools_purchase.py     # Tools for purchasing
+│       ├── tools_inventory.py    # Tools for inventory
+│       └── tools_accountings.py  # Tools for accounting
+├── pyproject.toml               # Package configuration
+├── Dockerfile                   # Configuration for Docker
+└── validation.py               # Validation script
 ```
 
-## Nuevas Funcionalidades
+## New Features
 
-### 1. Herramientas (Tools)
+### 1. Tools
 
-Las herramientas permiten a los modelos de lenguaje realizar acciones específicas en Odoo:
+Tools allow language models to perform specific actions in Odoo:
 
-#### Ventas
-- `search_sales_orders`: Busca órdenes de venta con filtros avanzados
-- `create_sales_order`: Crea una nueva orden de venta
-- `analyze_sales_performance`: Analiza el rendimiento de ventas por período, producto o cliente
-- `get_customer_insights`: Obtiene información detallada sobre un cliente específico
+#### Sales
+- `search_sales_orders`: Searches for sales orders with advanced filters
+- `create_sales_order`: Creates a new sales order
+- `analyze_sales_performance`: Analyzes sales performance by period, product, or customer
+- `get_customer_insights`: Gets detailed information about a specific customer
 
-#### Compras
-- `search_purchase_orders`: Busca órdenes de compra con filtros avanzados
-- `create_purchase_order`: Crea una nueva orden de compra
-- `analyze_supplier_performance`: Analiza el rendimiento de proveedores
+#### Purchases
+- `search_purchase_orders`: Searches for purchase orders with advanced filters
+- `create_purchase_order`: Creates a new purchase order
+- `analyze_supplier_performance`: Analyzes supplier performance
 
-#### Inventario
-- `check_product_availability`: Verifica la disponibilidad de stock para productos
-- `create_inventory_adjustment`: Crea un ajuste de inventario
-- `analyze_inventory_turnover`: Calcula y analiza la rotación de inventario
+#### Inventory
+- `check_product_availability`: Checks stock availability for products
+- `create_inventory_adjustment`: Creates an inventory adjustment
+- `analyze_inventory_turnover`: Calculates and analyzes inventory turnover
 
-#### Contabilidad
-- `search_journal_entries`: Busca asientos contables con filtros
-- `create_journal_entry`: Crea un nuevo asiento contable
-- `analyze_financial_ratios`: Calcula ratios financieros clave
+#### Accounting
+- `search_journal_entries`: Searches for journal entries with filters
+- `create_journal_entry`: Creates a new journal entry
+- `analyze_financial_ratios`: Calculates key financial ratios
 
-### 2. Recursos (Resources)
+### 2. Resources
 
-Los recursos proporcionan acceso a datos de Odoo mediante URIs:
+Resources provide access to Odoo data via URIs:
 
-#### Ventas
-- `odoo://sales/orders`: Lista órdenes de venta
-- `odoo://sales/order/{order_id}`: Obtiene detalles de una orden específica
-- `odoo://sales/products`: Lista productos vendibles
-- `odoo://sales/customers`: Lista clientes
+#### Sales
+- `odoo://sales/orders`: Lists sales orders
+- `odoo://sales/order/{order_id}`: Gets details of a specific order
+- `odoo://sales/products`: Lists sellable products
+- `odoo://sales/customers`: Lists customers
 
-#### Compras
-- `odoo://purchase/orders`: Lista órdenes de compra
-- `odoo://purchase/order/{order_id}`: Obtiene detalles de una orden específica
-- `odoo://purchase/suppliers`: Lista proveedores
+#### Purchases
+- `odoo://purchase/orders`: Lists purchase orders
+- `odoo://purchase/order/{order_id}`: Gets details of a specific order
+- `odoo://purchase/suppliers`: Lists suppliers
 
-#### Inventario
-- `odoo://inventory/products`: Lista productos en inventario
-- `odoo://inventory/stock/{location_id}`: Obtiene niveles de stock en una ubicación
-- `odoo://inventory/movements`: Lista movimientos de inventario
+#### Inventory
+- `odoo://inventory/products`: Lists products in inventory
+- `odoo://inventory/stock/{location_id}`: Gets stock levels in a location
+- `odoo://inventory/movements`: Lists inventory movements
 
-#### Contabilidad
-- `odoo://accounting/accounts`: Lista cuentas contables
-- `odoo://accounting/journal_entries`: Lista asientos contables
-- `odoo://accounting/reports/{report_type}`: Obtiene informes financieros
+#### Accounting
+- `odoo://accounting/accounts`: Lists accounting accounts
+- `odoo://accounting/journal_entries`: Lists journal entries
+- `odoo://accounting/reports/{report_type}`: Gets financial reports
 
 ### 3. Prompts
 
-Se han añadido prompts especializados para diferentes áreas:
+Specialized prompts have been added for different areas:
 
-- **Análisis de ventas**: Prompts para analizar tendencias, rendimiento y oportunidades
-- **Gestión de inventario**: Prompts para optimización de stock y planificación
-- **Planificación de recursos humanos**: Prompts para gestión de personal y horarios
-- **Análisis financiero**: Prompts para interpretación de datos contables y financieros
+- **Sales analysis**: Prompts for analyzing trends, performance, and opportunities
+- **Inventory management**: Prompts for stock optimization and planning
+- **Human resources planning**: Prompts for personnel and schedule management
+- **Financial analysis**: Prompts for interpreting accounting and financial data
 
-## Guía de Uso
+## Usage Guide
 
-### Instalación
+### Installation
 
-#### Opción 1: Usando el paquete de Python
+#### Option 1: Using the Python package
 
 ```bash
-# Clonar el repositorio
+# Clone the repository
 git clone https://github.com/tuanle96/mcp-odoo.git
 cd mcp-odoo
 
-# Instalar el paquete
+# Install the package
 pip install -e .
 
-# Ejecutar como módulo
+# Run as a module
 python -m src.odoo_mcp
 ```
 
-#### Opción 2: Usando Docker
+#### Option 2: Using Docker
 
 ```bash
-# Construir la imagen
+# Build the image
 docker build -t mcp/odoo:latest -f Dockerfile .
 
-# Ejecutar el contenedor
+# Run the container
 docker run -i --rm \
-  -e ODOO_URL=https://tu-instancia-odoo.com \
-  -e ODOO_DB=nombre-de-tu-base-de-datos \
-  -e ODOO_USERNAME=tu-usuario \
-  -e ODOO_PASSWORD=tu-contraseña \
+  -e ODOO_URL=https://your-odoo-instance.com \
+  -e ODOO_DB=your-database-name \
+  -e ODOO_USERNAME=your-username \
+  -e ODOO_PASSWORD=your-password \
   mcp/odoo
 ```
 
-### Configuración
+### Configuration
 
-El MCP-Odoo puede configurarse mediante variables de entorno o un archivo de configuración:
+MCP-Odoo can be configured using environment variables or a configuration file:
 
-#### Variables de entorno
+#### Environment variables
 
 ```bash
-export ODOO_URL=https://tu-instancia-odoo.com
-export ODOO_DB=nombre-de-tu-base-de-datos
-export ODOO_USERNAME=tu-usuario
-export ODOO_PASSWORD=tu-contraseña
+export ODOO_URL=https://your-odoo-instance.com
+export ODOO_DB=your-database-name
+export ODOO_USERNAME=your-username
+export ODOO_PASSWORD=your-password
 ```
 
-#### Archivo de configuración
+#### Configuration file
 
-Crear un archivo `odoo_config.json` en el directorio de trabajo:
+Create a `odoo_config.json` file in the working directory:
 
 ```json
 {
-  "url": "https://tu-instancia-odoo.com",
-  "db": "nombre-de-tu-base-de-datos",
-  "username": "tu-usuario",
-  "password": "tu-contraseña"
+  "url": "https://your-odoo-instance.com",
+  "db": "your-database-name",
+  "username": "your-username",
+  "password": "your-password"
 }
 ```
 
-### Integración con Claude Desktop
+### Integration with Claude Desktop
 
-Para usar el MCP-Odoo con Claude Desktop, añade la siguiente configuración a tu `claude_desktop_config.json`:
+To use MCP-Odoo with Claude Desktop, add the following configuration to your `claude_desktop_config.json`:
 
 ```json
 {
@@ -161,17 +161,17 @@ Para usar el MCP-Odoo con Claude Desktop, añade la siguiente configuración a t
       "command": "python",
       "args": ["-m", "src.odoo_mcp"],
       "env": {
-        "ODOO_URL": "https://tu-instancia-odoo.com",
-        "ODOO_DB": "nombre-de-tu-base-de-datos",
-        "ODOO_USERNAME": "tu-usuario",
-        "ODOO_PASSWORD": "tu-contraseña"
+        "ODOO_URL": "https://your-odoo-instance.com",
+        "ODOO_DB": "your-database-name",
+        "ODOO_USERNAME": "your-username",
+        "ODOO_PASSWORD": "your-password"
       }
     }
   }
 }
 ```
 
-Para usar la versión Docker:
+To use the Docker version:
 
 ```json
 {
@@ -189,86 +189,86 @@ Para usar la versión Docker:
         "mcp/odoo"
       ],
       "env": {
-        "ODOO_URL": "https://tu-instancia-odoo.com",
-        "ODOO_DB": "nombre-de-tu-base-de-datos",
-        "ODOO_USERNAME": "tu-usuario",
-        "ODOO_PASSWORD": "tu-contraseña"
+        "ODOO_URL": "https://your-odoo-instance.com",
+        "ODOO_DB": "your-database-name",
+        "ODOO_USERNAME": "your-username",
+        "ODOO_PASSWORD": "your-password"
       }
     }
   }
 }
 ```
 
-## Ejemplos de Uso
+## Usage Examples
 
-### Ejemplo 1: Análisis de ventas
-
-```
-Usando el MCP de Odoo, analiza las ventas del último trimestre y muestra los productos más vendidos.
-```
-
-### Ejemplo 2: Verificación de inventario
+### Example 1: Sales analysis
 
 ```
-Verifica la disponibilidad de stock para los productos X, Y y Z en el almacén principal.
+Using the Odoo MCP, analyze sales from the last quarter and show the best-selling products.
 ```
 
-### Ejemplo 3: Análisis financiero
+### Example 2: Inventory check
 
 ```
-Calcula los ratios de liquidez y rentabilidad para el año fiscal actual y compáralos con el año anterior.
+Check the stock availability for products X, Y, and Z in the main warehouse.
 ```
 
-### Ejemplo 4: Creación de órdenes de compra
+### Example 3: Financial analysis
 
 ```
-Crea una orden de compra para el proveedor ABC con los siguientes productos: 10 unidades del producto X y 5 unidades del producto Y.
+Calculate the liquidity and profitability ratios for the current fiscal year and compare them with the previous year.
 ```
 
-## Extensión del Sistema
+### Example 4: Creating purchase orders
 
-El sistema está diseñado para ser fácilmente extensible. Para añadir nuevas funcionalidades:
+```
+Create a purchase order for supplier ABC with the following products: 10 units of product X and 5 units of product Y.
+```
 
-1. **Nuevas herramientas**: Crea un nuevo archivo `tools_*.py` siguiendo el patrón existente
-2. **Nuevos recursos**: Añade nuevos recursos en `resources.py`
-3. **Nuevos prompts**: Añade nuevos prompts en `prompts.py`
-4. **Registro de extensiones**: Actualiza `extensions.py` para registrar las nuevas funcionalidades
+## System Extension
 
-## Solución de Problemas
+The system is designed to be easily extensible. To add new functionalities:
 
-### Problemas de conexión
+1. **New tools**: Create a new `tools_*.py` file following the existing pattern
+2. **New resources**: Add new resources in `resources.py`
+3. **New prompts**: Add new prompts in `prompts.py`
+4. **Extension registration**: Update `extensions.py` to register the new functionalities
 
-Si experimentas problemas de conexión con Odoo:
+## Troubleshooting
 
-1. Verifica las credenciales en las variables de entorno o archivo de configuración
-2. Asegúrate de que la URL de Odoo es accesible desde donde ejecutas el MCP
-3. Verifica que el usuario tiene permisos suficientes en Odoo
+### Connection problems
 
-### Errores en las herramientas
+If you experience connection problems with Odoo:
 
-Si una herramienta devuelve un error:
+1. Verify the credentials in the environment variables or configuration file
+2. Make sure the Odoo URL is accessible from where you run the MCP
+3. Verify that the user has sufficient permissions in Odoo
 
-1. Revisa los parámetros proporcionados
-2. Verifica que los IDs de registros existen en Odoo
-3. Comprueba los permisos del usuario para la operación específica
+### Errors in tools
 
-## Validación
+If a tool returns an error:
 
-Se incluye un script de validación (`validation.py`) que puede ejecutarse para verificar que todas las funcionalidades están correctamente implementadas y son compatibles con tu instancia de Odoo:
+1. Review the provided parameters
+2. Verify that the record IDs exist in Odoo
+3. Check the user's permissions for the specific operation
+
+## Validation
+
+A validation script (`validation.py`) is included that can be run to verify that all functionalities are correctly implemented and compatible with your Odoo instance:
 
 ```bash
 python validation.py
 ```
 
-## Contribución
+## Contribution
 
-Las contribuciones son bienvenidas. Para contribuir:
+Contributions are welcome. To contribute:
 
-1. Haz un fork del repositorio
-2. Crea una rama para tu funcionalidad (`git checkout -b feature/nueva-funcionalidad`)
-3. Realiza tus cambios y añade pruebas
-4. Envía un pull request
+1. Fork the repository
+2. Create a branch for your feature (`git checkout -b feature/new-feature`)
+3. Make your changes and add tests
+4. Submit a pull request
 
-## Licencia
+## License
 
-Este proyecto se distribuye bajo la misma licencia que el repositorio original.
+This project is distributed under the same license as the original repository.

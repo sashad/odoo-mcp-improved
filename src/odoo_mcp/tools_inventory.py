@@ -1,5 +1,5 @@
 """
-Implementación de herramientas (tools) para inventario en MCP-Odoo
+Implementation of tools for inventory in MCP-Odoo
 """
 
 from typing import Dict, List, Any, Optional
@@ -13,26 +13,26 @@ from .models import (
 )
 
 def register_inventory_tools(mcp: FastMCP) -> None:
-    """Registra herramientas relacionadas con inventario"""
+    """Registers inventory-related tools"""
     
-    @mcp.tool(description="Verifica la disponibilidad de stock para uno o más productos")
+    @mcp.tool(description="Checks the stock availability for one or more products")
     def check_product_availability(
         ctx: Context,
         params: ProductAvailabilityInput
     ) -> Dict[str, Any]:
         """
-        Verifica la disponibilidad de stock para uno o más productos
+        Checks the stock availability for one or more products
         
         Args:
-            params: Parámetros con IDs de productos y ubicación opcional
+            params: Parameters with product IDs and optional location
             
         Returns:
-            Diccionario con información de disponibilidad
+            Dictionary with availability information
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Verificar que los productos existen
+            # Check if products exist
             products = odoo.search_read(
                 "product.product",
                 [("id", "in", params.product_ids)],
@@ -40,21 +40,21 @@ def register_inventory_tools(mcp: FastMCP) -> None:
             )
             
             if not products:
-                return {"success": False, "error": "No se encontraron productos con los IDs proporcionados"}
+                return {"success": False, "error": "No products found with the provided IDs"}
             
-            # Mapear IDs a nombres para referencia
+            # Map IDs to names for reference
             product_names = {p["id"]: p["name"] for p in products}
             
-            # Obtener disponibilidad
+            # Get availability
             availability = {}
             
             for product_id in params.product_ids:
-                # Construir contexto para la consulta
+                # Build context for the query
                 context = {}
                 if params.location_id:
                     context["location"] = params.location_id
                 
-                # Obtener cantidad disponible usando el método qty_available
+                # Get available quantity using the qty_available method
                 try:
                     product_data = odoo.execute_method(
                         "product.product", 
@@ -67,7 +67,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     if product_data:
                         product_info = product_data[0]
                         availability[product_id] = {
-                            "name": product_names.get(product_id, f"Producto {product_id}"),
+                            "name": product_names.get(product_id, f"Product {product_id}"),
                             "qty_available": product_info["qty_available"],
                             "virtual_available": product_info["virtual_available"],
                             "incoming_qty": product_info["incoming_qty"],
@@ -75,16 +75,16 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                         }
                     else:
                         availability[product_id] = {
-                            "name": product_names.get(product_id, f"Producto {product_id}"),
-                            "error": "Producto no encontrado"
+                            "name": product_names.get(product_id, f"Product {product_id}"),
+                            "error": "Product not found"
                         }
                 except Exception as e:
                     availability[product_id] = {
-                        "name": product_names.get(product_id, f"Producto {product_id}"),
+                        "name": product_names.get(product_id, f"Product {product_id}"),
                         "error": str(e)
                     }
             
-            # Obtener información de la ubicación si se especificó
+            # Get location information if specified
             location_info = None
             if params.location_id:
                 try:
@@ -96,7 +96,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     if location_data:
                         location_info = location_data[0]
                 except Exception:
-                    location_info = {"id": params.location_id, "name": "Ubicación desconocida"}
+                    location_info = {"id": params.location_id, "name": "Unknown location"}
             
             return {
                 "success": True,
@@ -109,28 +109,28 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    @mcp.tool(description="Crea un ajuste de inventario para corregir el stock")
+    @mcp.tool(description="Creates an inventory adjustment to correct stock")
     def create_inventory_adjustment(
         ctx: Context,
         adjustment: InventoryAdjustmentCreate
     ) -> Dict[str, Any]:
         """
-        Crea un ajuste de inventario para corregir el stock
+        Creates an inventory adjustment to correct stock
         
         Args:
-            adjustment: Datos del ajuste a crear
+            adjustment: Data of the adjustment to be created
             
         Returns:
-            Respuesta con el resultado de la operación
+            Response with the result of the operation
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Verificar la versión de Odoo para determinar el modelo correcto
-            # En Odoo 13.0+, se usa 'stock.inventory'
-            # En Odoo 15.0+, se usa 'stock.quant' directamente
+            # Check Odoo version to determine the correct model
+            # In Odoo 13.0+, 'stock.inventory' is used
+            # In Odoo 15.0+, 'stock.quant' is used directly
             
-            # Intentar obtener el modelo stock.inventory
+            # Try to get the stock.inventory model
             inventory_model_exists = odoo.execute_method(
                 "ir.model",
                 "search_count",
@@ -138,8 +138,8 @@ def register_inventory_tools(mcp: FastMCP) -> None:
             ) > 0
             
             if inventory_model_exists:
-                # Usar el flujo de stock.inventory (Odoo 13.0, 14.0)
-                # Crear el inventario
+                # Use the stock.inventory flow (Odoo 13.0, 14.0)
+                # Create the inventory
                 inventory_vals = {
                     "name": adjustment.name,
                     "line_ids": []
@@ -150,12 +150,12 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                         datetime.strptime(adjustment.date, "%Y-%m-%d")
                         inventory_vals["date"] = adjustment.date
                     except ValueError:
-                        return {"success": False, "error": f"Formato de fecha inválido: {adjustment.date}. Use YYYY-MM-DD."}
+                        return {"success": False, "error": f"Invalid date format: {adjustment.date}. Use YYYY-MM-DD."}
                 
-                # Crear el inventario
+                # Create the inventory
                 inventory_id = odoo.execute_method("stock.inventory", "create", inventory_vals)
                 
-                # Añadir líneas al inventario
+                # Add lines to the inventory
                 for line in adjustment.adjustment_lines:
                     line_vals = {
                         "inventory_id": inventory_id,
@@ -166,7 +166,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     
                     odoo.execute_method("stock.inventory.line", "create", line_vals)
                 
-                # Confirmar el inventario
+                # Confirm the inventory
                 odoo.execute_method("stock.inventory", "action_validate", [inventory_id])
                 
                 return {
@@ -177,11 +177,11 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     }
                 }
             else:
-                # Usar el flujo de stock.quant (Odoo 15.0+)
+                # Use the stock.quant flow (Odoo 15.0+)
                 result_ids = []
                 
                 for line in adjustment.adjustment_lines:
-                    # Buscar el quant existente
+                    # Search for the existing quant
                     quant_domain = [
                         ("product_id", "=", line.product_id),
                         ("location_id", "=", line.location_id)
@@ -194,7 +194,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     )
                     
                     if quants:
-                        # Actualizar quant existente
+                        # Update existing quant
                         quant_id = quants[0]["id"]
                         odoo.execute_method(
                             "stock.quant",
@@ -204,7 +204,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                         )
                         result_ids.append(quant_id)
                     else:
-                        # Crear nuevo quant
+                        # Create new quant
                         quant_vals = {
                             "product_id": line.product_id,
                             "location_id": line.location_id,
@@ -213,7 +213,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                         quant_id = odoo.execute_method("stock.quant", "create", quant_vals)
                         result_ids.append(quant_id)
                 
-                # Aplicar el inventario
+                # Apply the inventory
                 odoo.execute_method("stock.quant", "action_apply_inventory", result_ids)
                 
                 return {
@@ -227,32 +227,32 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    @mcp.tool(description="Calcula y analiza la rotación de inventario")
+    @mcp.tool(description="Calculates and analyzes inventory turnover")
     def analyze_inventory_turnover(
         ctx: Context,
         params: InventoryTurnoverInput
     ) -> Dict[str, Any]:
         """
-        Calcula y analiza la rotación de inventario
+        Calculates and analyzes inventory turnover
         
         Args:
-            params: Parámetros para el análisis
+            params: Parameters for the analysis
             
         Returns:
-            Diccionario con resultados del análisis
+            Dictionary with analysis results
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Validar fechas
+            # Validate dates
             try:
                 date_from = datetime.strptime(params.date_from, "%Y-%m-%d")
                 date_to = datetime.strptime(params.date_to, "%Y-%m-%d")
             except ValueError:
-                return {"success": False, "error": "Formato de fecha inválido. Use YYYY-MM-DD."}
+                return {"success": False, "error": "Invalid date format. Use YYYY-MM-DD."}
             
-            # Construir dominio para productos
-            product_domain = [("type", "=", "product")]  # Solo productos almacenables
+            # Build domain for products
+            product_domain = [("type", "=", "product")]  # Only storable products
             
             if params.product_ids:
                 product_domain.append(("id", "in", params.product_ids))
@@ -260,7 +260,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
             if params.category_id:
                 product_domain.append(("categ_id", "=", params.category_id))
             
-            # Obtener productos
+            # Get products
             products = odoo.search_read(
                 "product.product",
                 product_domain,
@@ -268,20 +268,20 @@ def register_inventory_tools(mcp: FastMCP) -> None:
             )
             
             if not products:
-                return {"success": False, "error": "No se encontraron productos con los criterios especificados"}
+                return {"success": False, "error": "No products found with the specified criteria"}
             
-            # Calcular rotación para cada producto
+            # Calculate turnover for each product
             product_turnover = {}
             
             for product in products:
                 product_id = product["id"]
                 
-                # 1. Obtener movimientos de salida (ventas) en el período
+                # 1. Get outgoing moves (sales) in the period
                 outgoing_domain = [
                     ("product_id", "=", product_id),
                     ("date", ">=", params.date_from),
                     ("date", "<=", params.date_to),
-                    ("location_dest_id.usage", "=", "customer")  # Destino: cliente
+                    ("location_dest_id.usage", "=", "customer")  # Destination: customer
                 ]
                 
                 outgoing_moves = odoo.search_read(
@@ -290,15 +290,15 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     fields=["product_uom_qty", "price_unit"]
                 )
                 
-                # Calcular costo de ventas
+                # Calculate cost of goods sold
                 cogs = sum(move["product_uom_qty"] * (move.get("price_unit") or product["standard_price"]) for move in outgoing_moves)
                 
-                # 2. Obtener valor de inventario promedio
-                # Intentar obtener valoración de inventario al inicio y fin del período
+                # 2. Get average inventory value
+                # Try to get inventory valuation at the beginning and end of the period
                 
-                # Método 1: Usar informes de valoración si están disponibles
+                # Method 1: Use valuation reports if available
                 try:
-                    # Valoración al inicio del período
+                    # Valuation at the beginning of the period
                     context_start = {
                         "to_date": params.date_from
                     }
@@ -311,7 +311,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                         context_start
                     )
                     
-                    # Valoración al final del período
+                    # Valuation at the end of the period
                     context_end = {
                         "to_date": params.date_to
                     }
@@ -330,8 +330,8 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     avg_inventory_value = (start_value + end_value) / 2
                     
                 except Exception:
-                    # Método 2: Estimación basada en precio estándar y cantidad
-                    # Obtener cantidad al inicio
+                    # Method 2: Estimation based on standard price and quantity
+                    # Get quantity at the beginning
                     context_start = {
                         "to_date": params.date_from
                     }
@@ -344,7 +344,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                         context_start
                     )
                     
-                    # Obtener cantidad al final
+                    # Get quantity at the end
                     context_end = {
                         "to_date": params.date_to
                     }
@@ -363,37 +363,37 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                     avg_qty = (start_qty + end_qty) / 2
                     avg_inventory_value = avg_qty * product["standard_price"]
                 
-                # 3. Calcular métricas de rotación
+                # 3. Calculate turnover metrics
                 turnover_ratio = 0
                 days_inventory = 0
                 
                 if avg_inventory_value > 0:
                     turnover_ratio = cogs / avg_inventory_value
                     
-                    # Días de inventario (basado en el período analizado)
+                    # Days of inventory (based on the analyzed period)
                     days_in_period = (date_to - date_from).days + 1
                     if turnover_ratio > 0:
                         days_inventory = days_in_period / turnover_ratio
                 
-                # Guardar resultados
+                # Save results
                 product_turnover[product_id] = {
                     "name": product["name"],
                     "default_code": product["default_code"],
-                    "category": product["categ_id"][1] if product["categ_id"] else "Sin categoría",
+                    "category": product["categ_id"][1] if product["categ_id"] else "Uncategorized",
                     "cogs": cogs,
                     "avg_inventory_value": avg_inventory_value,
                     "turnover_ratio": turnover_ratio,
                     "days_inventory": days_inventory
                 }
             
-            # Ordenar productos por rotación (de mayor a menor)
+            # Sort products by turnover (from highest to lowest)
             sorted_products = sorted(
                 product_turnover.items(),
                 key=lambda x: x[1]["turnover_ratio"],
                 reverse=True
             )
             
-            # Calcular promedios generales
+            # Calculate overall averages
             total_cogs = sum(data["cogs"] for _, data in product_turnover.items())
             total_avg_value = sum(data["avg_inventory_value"] for _, data in product_turnover.items())
             
@@ -406,7 +406,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
                 if overall_turnover > 0:
                     overall_days = days_in_period / overall_turnover
             
-            # Preparar resultado
+            # Prepare result
             result = {
                 "period": {
                     "from": params.date_from,

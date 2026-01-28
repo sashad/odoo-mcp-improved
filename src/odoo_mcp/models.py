@@ -1,120 +1,120 @@
 """
-Implementación de modelos Pydantic para MCP-Odoo
+Pydantic models implementation for MCP-Odoo
 """
 
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
-# Modelos para Ventas
+# Sales Models
 class SalesOrderLineCreate(BaseModel):
-    """Línea de pedido de venta para creación"""
-    product_id: int = Field(description="ID del producto")
-    product_uom_qty: float = Field(description="Cantidad")
-    price_unit: Optional[float] = Field(None, description="Precio unitario (opcional, Odoo puede calcularlo)")
+    """Sales order line for creation"""
+    product_id: int = Field(description="ID of the product")
+    product_uom_qty: float = Field(description="Quantity")
+    price_unit: Optional[float] = Field(None, description="Unit price (optional, Odoo can calculate it)")
 
 class SalesOrderCreate(BaseModel):
-    """Datos para crear un pedido de venta"""
-    partner_id: int = Field(description="ID del cliente")
-    order_lines: List[SalesOrderLineCreate] = Field(description="Líneas del pedido")
-    date_order: Optional[str] = Field(None, description="Fecha del pedido (YYYY-MM-DD)")
+    """Data to create a sales order"""
+    partner_id: int = Field(description="ID of the customer")
+    order_lines: List[SalesOrderLineCreate] = Field(description="Order lines")
+    date_order: Optional[str] = Field(None, description="Order date (YYYY-MM-DD)")
 
 class SalesOrderFilter(BaseModel):
-    """Filtros para búsqueda de pedidos de venta"""
-    partner_id: Optional[int] = Field(None, description="Filtrar por cliente ID")
-    date_from: Optional[str] = Field(None, description="Fecha inicial (YYYY-MM-DD)")
-    date_to: Optional[str] = Field(None, description="Fecha final (YYYY-MM-DD)")
-    state: Optional[str] = Field(None, description="Estado del pedido (e.g., 'sale', 'draft', 'done')")
-    limit: Optional[int] = Field(20, description="Límite de resultados")
-    offset: Optional[int] = Field(0, description="Offset para paginación")
-    order: Optional[str] = Field(None, description="Criterio de ordenación (e.g., 'date_order DESC')")
+    """Filters for sales order search"""
+    partner_id: Optional[int] = Field(None, description="Filter by customer ID")
+    date_from: Optional[str] = Field(None, description="Start date (YYYY-MM-DD)")
+    date_to: Optional[str] = Field(None, description="End date (YYYY-MM-DD)")
+    state: Optional[str] = Field(None, description="Order state (e.g., 'sale', 'draft', 'done')")
+    limit: Optional[int] = Field(20, description="Limit of results")
+    offset: Optional[int] = Field(0, description="Offset for pagination")
+    order: Optional[str] = Field(None, description="Sort criteria (e.g., 'date_order DESC')")
 
 class SalesPerformanceInput(BaseModel):
-    """Parámetros para análisis de rendimiento de ventas"""
-    date_from: str = Field(description="Fecha inicial (YYYY-MM-DD)")
-    date_to: str = Field(description="Fecha final (YYYY-MM-DD)")
-    group_by: Optional[str] = Field(None, description="Agrupar por ('product', 'customer', 'salesperson')")
+    """Parameters for sales performance analysis"""
+    date_from: str = Field(description="Start date (YYYY-MM-DD)")
+    date_to: str = Field(description="End date (YYYY-MM-DD)")
+    group_by: Optional[str] = Field(None, description="Group by ('product', 'customer', 'salesperson')")
 
-# Modelos para Compras
+# Purchase Models
 class PurchaseOrderLineCreate(BaseModel):
-    """Línea de orden de compra para creación"""
-    product_id: int = Field(description="ID del producto")
-    product_qty: float = Field(description="Cantidad")
-    price_unit: Optional[float] = Field(None, description="Precio unitario (opcional)")
+    """Purchase order line for creation"""
+    product_id: int = Field(description="ID of the product")
+    product_qty: float = Field(description="Quantity")
+    price_unit: Optional[float] = Field(None, description="Unit price (optional)")
 
 class PurchaseOrderCreate(BaseModel):
-    """Datos para crear una orden de compra"""
-    partner_id: int = Field(description="ID del proveedor")
-    order_lines: List[PurchaseOrderLineCreate] = Field(description="Líneas de la orden")
-    date_order: Optional[str] = Field(None, description="Fecha de la orden (YYYY-MM-DD)")
+    """Data to create a purchase order"""
+    partner_id: int = Field(description="ID of the supplier")
+    order_lines: List[PurchaseOrderLineCreate] = Field(description="Order lines")
+    date_order: Optional[str] = Field(None, description="Order date (YYYY-MM-DD)")
 
 class PurchaseOrderFilter(BaseModel):
-    """Filtros para búsqueda de órdenes de compra"""
-    partner_id: Optional[int] = Field(None, description="Filtrar por proveedor ID")
-    date_from: Optional[str] = Field(None, description="Fecha inicial (YYYY-MM-DD)")
-    date_to: Optional[str] = Field(None, description="Fecha final (YYYY-MM-DD)")
-    state: Optional[str] = Field(None, description="Estado de la orden (e.g., 'purchase', 'draft', 'done')")
-    limit: Optional[int] = Field(20, description="Límite de resultados")
-    offset: Optional[int] = Field(0, description="Offset para paginación")
-    order: Optional[str] = Field(None, description="Criterio de ordenación (e.g., 'date_order DESC')")
+    """Filters for purchase order search"""
+    partner_id: Optional[int] = Field(None, description="Filter by supplier ID")
+    date_from: Optional[str] = Field(None, description="Start date (YYYY-MM-DD)")
+    date_to: Optional[str] = Field(None, description="End date (YYYY-MM-DD)")
+    state: Optional[str] = Field(None, description="Order state (e.g., 'purchase', 'draft', 'done')")
+    limit: Optional[int] = Field(20, description="Limit of results")
+    offset: Optional[int] = Field(0, description="Offset for pagination")
+    order: Optional[str] = Field(None, description="Sort criteria (e.g., 'date_order DESC')")
 
 class SupplierPerformanceInput(BaseModel):
-    """Parámetros para análisis de rendimiento de proveedores"""
-    date_from: str = Field(description="Fecha inicial (YYYY-MM-DD)")
-    date_to: str = Field(description="Fecha final (YYYY-MM-DD)")
-    supplier_ids: Optional[List[int]] = Field(None, description="Lista de IDs de proveedores (opcional)")
+    """Parameters for supplier performance analysis"""
+    date_from: str = Field(description="Start date (YYYY-MM-DD)")
+    date_to: str = Field(description="End date (YYYY-MM-DD)")
+    supplier_ids: Optional[List[int]] = Field(None, description="List of supplier IDs (optional)")
 
-# Modelos para Inventario
+# Inventory Models
 class ProductAvailabilityInput(BaseModel):
-    """Parámetros para verificar disponibilidad de productos"""
-    product_ids: List[int] = Field(description="Lista de IDs de productos")
-    location_id: Optional[int] = Field(None, description="ID de la ubicación específica (opcional)")
+    """Parameters to check product availability"""
+    product_ids: List[int] = Field(description="List of product IDs")
+    location_id: Optional[int] = Field(None, description="ID of the specific location (optional)")
 
 class InventoryLineAdjustment(BaseModel):
-    """Línea de ajuste de inventario"""
-    product_id: int = Field(description="ID del producto")
-    location_id: int = Field(description="ID de la ubicación")
-    product_qty: float = Field(description="Cantidad contada real")
+    """Inventory adjustment line"""
+    product_id: int = Field(description="ID of the product")
+    location_id: int = Field(description="ID of the location")
+    product_qty: float = Field(description="Actual counted quantity")
 
 class InventoryAdjustmentCreate(BaseModel):
-    """Datos para crear un ajuste de inventario"""
-    name: str = Field(description="Nombre o descripción del ajuste")
-    adjustment_lines: List[InventoryLineAdjustment] = Field(description="Líneas de ajuste")
-    date: Optional[str] = Field(None, description="Fecha del ajuste (YYYY-MM-DD)")
+    """Data to create an inventory adjustment"""
+    name: str = Field(description="Name or description of the adjustment")
+    adjustment_lines: List[InventoryLineAdjustment] = Field(description="Adjustment lines")
+    date: Optional[str] = Field(None, description="Date of the adjustment (YYYY-MM-DD)")
 
 class InventoryTurnoverInput(BaseModel):
-    """Parámetros para análisis de rotación de inventario"""
-    date_from: str = Field(description="Fecha inicial (YYYY-MM-DD)")
-    date_to: str = Field(description="Fecha final (YYYY-MM-DD)")
-    product_ids: Optional[List[int]] = Field(None, description="Lista de IDs de productos (opcional)")
-    category_id: Optional[int] = Field(None, description="ID de categoría de producto (opcional)")
+    """Parameters for inventory turnover analysis"""
+    date_from: str = Field(description="Start date (YYYY-MM-DD)")
+    date_to: str = Field(description="End date (YYYY-MM-DD)")
+    product_ids: Optional[List[int]] = Field(None, description="List of product IDs (optional)")
+    category_id: Optional[int] = Field(None, description="Product category ID (optional)")
 
-# Modelos para Contabilidad
+# Accounting Models
 class JournalEntryLineCreate(BaseModel):
-    """Línea de asiento contable para creación"""
-    account_id: int = Field(description="ID de la cuenta contable")
-    partner_id: Optional[int] = Field(None, description="ID del partner (opcional)")
-    name: Optional[str] = Field(None, description="Descripción de la línea")
-    debit: float = Field(0.0, description="Importe al debe")
-    credit: float = Field(0.0, description="Importe al haber")
+    """Journal entry line for creation"""
+    account_id: int = Field(description="ID of the account")
+    partner_id: Optional[int] = Field(None, description="ID of the partner (optional)")
+    name: Optional[str] = Field(None, description="Line description")
+    debit: float = Field(0.0, description="Debit amount")
+    credit: float = Field(0.0, description="Credit amount")
 
 class JournalEntryCreate(BaseModel):
-    """Datos para crear un asiento contable"""
-    ref: Optional[str] = Field(None, description="Referencia del asiento")
-    journal_id: int = Field(description="ID del diario contable")
-    date: Optional[str] = Field(None, description="Fecha del asiento (YYYY-MM-DD)")
-    lines: List[JournalEntryLineCreate] = Field(description="Líneas del asiento (debe y haber deben cuadrar)")
+    """Data to create a journal entry"""
+    ref: Optional[str] = Field(None, description="Reference of the entry")
+    journal_id: int = Field(description="ID of the journal")
+    date: Optional[str] = Field(None, description="Date of the entry (YYYY-MM-DD)")
+    lines: List[JournalEntryLineCreate] = Field(description="Entry lines (debit and credit must match)")
 
 class JournalEntryFilter(BaseModel):
-    """Filtros para búsqueda de asientos contables"""
-    date_from: Optional[str] = Field(None, description="Fecha inicial (YYYY-MM-DD)")
-    date_to: Optional[str] = Field(None, description="Fecha final (YYYY-MM-DD)")
-    journal_id: Optional[int] = Field(None, description="Filtrar por diario contable ID")
-    state: Optional[str] = Field(None, description="Estado del asiento (e.g., 'posted', 'draft')")
-    limit: Optional[int] = Field(20, description="Límite de resultados")
-    offset: Optional[int] = Field(0, description="Offset para paginación")
+    """Filters for journal entry search"""
+    date_from: Optional[str] = Field(None, description="Start date (YYYY-MM-DD)")
+    date_to: Optional[str] = Field(None, description="End date (YYYY-MM-DD)")
+    journal_id: Optional[int] = Field(None, description="Filter by journal ID")
+    state: Optional[str] = Field(None, description="Entry state (e.g., 'posted', 'draft')")
+    limit: Optional[int] = Field(20, description="Limit of results")
+    offset: Optional[int] = Field(0, description="Offset for pagination")
 
 class FinancialRatioInput(BaseModel):
-    """Parámetros para cálculo de ratios financieros"""
-    date_from: str = Field(description="Fecha inicial (YYYY-MM-DD)")
-    date_to: str = Field(description="Fecha final (YYYY-MM-DD)")
-    ratios: List[str] = Field(description="Lista de ratios a calcular (e.g., ['liquidity', 'profitability', 'debt'])")
+    """Parameters for calculating financial ratios"""
+    date_from: str = Field(description="Start date (YYYY-MM-DD)")
+    date_to: str = Field(description="End date (YYYY-MM-DD)")
+    ratios: List[str] = Field(description="List of ratios to calculate (e.g., ['liquidity', 'profitability', 'debt'])")
