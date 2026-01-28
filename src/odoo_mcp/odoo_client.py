@@ -65,7 +65,7 @@ class OdooClient:
 
     def _connect(self):
         """Initialize the XML-RPC connection and authenticate"""
-        # Tạo transport với timeout phù hợp
+        # Create transport with appropriate timeout
         is_https = self.url.startswith("https://")
         transport = RedirectTransport(
             timeout=self.timeout, use_https=is_https, verify_ssl=self.verify_ssl
@@ -78,7 +78,7 @@ class OdooClient:
             file=os.sys.stderr,
         )
 
-        # Thiết lập endpoints
+        # Set up endpoints
         self._common = xmlrpc.client.ServerProxy(
             f"{self.url}/xmlrpc/2/common", transport=transport
         )
@@ -86,7 +86,7 @@ class OdooClient:
             f"{self.url}/xmlrpc/2/object", transport=transport
         )
 
-        # Xác thực và lấy user ID
+        # Authenticate and get user ID
         print(
             f"Authenticating with database: {self.db}, username: {self.username}",
             file=os.sys.stderr,
@@ -385,19 +385,35 @@ def load_config():
         var in os.environ
         for var in ["ODOO_URL", "ODOO_DB", "ODOO_USERNAME", "ODOO_PASSWORD"]
     ):
-        return {
-            "url": os.environ["ODOO_URL"],
-            "db": os.environ["ODOO_DB"],
-            "username": os.environ["ODOO_USERNAME"],
-            "password": os.environ["ODOO_PASSWORD"],
+        if all(
+            var in os.environ
+            for var in ["ODOO_MCP_HTTP_HOST", "ODOO_MCP_HTTP_PORT"]
+        ):
+            optional = {
+                "mcp_http_host": os.environ["ODOO_MCP_HTTP_HOST"],
+                "mcp_http_port": os.environ["ODOO_MCP_HTTP_PORT"],
+            }
+        else:
+            optional = {}
+
+        config = {
+            **{
+                "url": os.environ["ODOO_URL"],
+                "db": os.environ["ODOO_DB"],
+                "username": os.environ["ODOO_USERNAME"],
+                "password": os.environ["ODOO_PASSWORD"],
+            },
+            **optional
         }
+        return config
 
     # Try to load from file
     for path in config_paths:
         expanded_path = os.path.expanduser(path)
         if os.path.exists(expanded_path):
             with open(expanded_path, "r") as f:
-                return json.load(f)
+                config = json.load(f)
+                return config
 
     raise FileNotFoundError(
         "No Odoo configuration found. Please create an odoo_config.json file or set environment variables."
@@ -433,5 +449,5 @@ def get_odoo_client():
         username=config["username"],
         password=config["password"],
         timeout=timeout,
-        verify_ssl=verify_ssl,
+        verify_ssl=verify_ssl
     )

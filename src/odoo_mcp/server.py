@@ -1,5 +1,5 @@
 """
-Actualización del servidor MCP principal para integrar todas las extensiones
+Update of the main MCP server to integrate all extensions
 """
 
 import json
@@ -316,7 +316,7 @@ def execute_method(
                         except:
                             domain_list = []
 
-                # Xác thực domain_list
+                # Validate domain_list
                 if domain_list:
                     valid_conditions = []
                     for cond in domain_list:
@@ -334,7 +334,7 @@ def execute_method(
 
                     domain_list = valid_conditions
 
-                # Cập nhật args với domain đã chuẩn hóa
+                # Update args with standardized domain
                 normalized_args[0] = domain_list
                 args = normalized_args
 
@@ -443,5 +443,5 @@ def search_holidays(
         return SearchHolidaysResponse(success=False, error=str(e))
 
 
-# Registrar todas las extensiones
+# Register all extensions
 register_all_extensions(mcp)

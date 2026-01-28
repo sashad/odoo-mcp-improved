@@ -5,8 +5,15 @@ import sys
 import asyncio
 import traceback
 import os
+import uvicorn
 
 from .server import mcp
+from .odoo_client import load_config
+
+from mcp.server.sse import SseServerTransport
+from starlette.applications import Starlette
+from starlette.routing import Route, Mount
+from starlette.responses import Response
 
 
 def main() -> int:
@@ -30,9 +37,35 @@ def main() -> int:
         
         print("Starting MCP server with run() method...", file=sys.stderr)
         sys.stderr.flush()  # Ensure log information is written immediately
-        
-        # Use the run() method directly
-        mcp.run()
+
+        config = load_config()
+        if config.get("mcp_http_host") and config.get("mcp_http_port"):
+            # Create an SSE transport at an endpoint
+            sse = SseServerTransport("/messages/")
+
+            # Define handler functions
+            async def handle_sse(request):
+                async with sse.connect_sse(
+                    request.scope, request.receive, request._send
+                ) as streams:
+                    await mcp._mcp_server.run(
+                        streams[0], streams[1], mcp._mcp_server.create_initialization_options()
+                    )
+                # Return empty response to avoid NoneType error
+                return Response()
+
+            # Create Starlette routes for SSE and message handling
+            routes = [
+                Route("/sse", endpoint=handle_sse, methods=["GET"]),
+                Mount("/messages/", app=sse.handle_post_message),
+            ]
+
+            # Create and run Starlette app
+            starlette_app = Starlette(routes=routes)
+            uvicorn.run(starlette_app, host=config.get("mcp_http_host"), port=config.get("mcp_http_port"))
+        else:
+            # Use the run() method directly
+            mcp.run()
         
         # If execution reaches here, the server exited normally
         print("MCP server stopped normally", file=sys.stderr)

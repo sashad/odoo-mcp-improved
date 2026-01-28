@@ -1,5 +1,5 @@
 """
-Implementación de herramientas (tools) para compras en MCP-Odoo
+Implementation of tools for purchasing in MCP-Odoo
 """
 
 from typing import Dict, List, Any, Optional
@@ -13,26 +13,26 @@ from .models import (
 )
 
 def register_purchase_tools(mcp: FastMCP) -> None:
-    """Registra herramientas relacionadas con compras"""
+    """Register purchase-related tools"""
     
-    @mcp.tool(description="Busca órdenes de compra con filtros avanzados")
+    @mcp.tool(description="Search for purchase orders using advanced filters")
     def search_purchase_orders(
         ctx: Context,
         filters: PurchaseOrderFilter
     ) -> Dict[str, Any]:
         """
-        Busca órdenes de compra según los filtros especificados
+        Search for purchase orders based on the specified filters
         
         Args:
-            filters: Filtros para la búsqueda de órdenes
+            filters: Filters for order search
             
         Returns:
-            Diccionario con resultados de la búsqueda
+            Dictionary with search results
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Construir dominio de búsqueda
+            # Build search domain
             domain = []
             
             if filters.partner_id:
@@ -43,26 +43,26 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                     datetime.strptime(filters.date_from, "%Y-%m-%d")
                     domain.append(("date_order", ">=", filters.date_from))
                 except ValueError:
-                    return {"success": False, "error": f"Formato de fecha inválido: {filters.date_from}. Use YYYY-MM-DD."}
+                    return {"success": False, "error": f"Invalid date format: {filters.date_from}. Use YYYY-MM-DD."}
                 
             if filters.date_to:
                 try:
                     datetime.strptime(filters.date_to, "%Y-%m-%d")
                     domain.append(("date_order", "<=", filters.date_to))
                 except ValueError:
-                    return {"success": False, "error": f"Formato de fecha inválido: {filters.date_to}. Use YYYY-MM-DD."}
+                    return {"success": False, "error": f"Invalid date format: {filters.date_to}. Use YYYY-MM-DD."}
                 
             if filters.state:
                 domain.append(("state", "=", filters.state))
             
-            # Campos a recuperar
+            # Fields to retrieve
             fields = [
                 "name", "partner_id", "date_order", "amount_total", 
                 "state", "invoice_status", "user_id", "order_line",
                 "date_planned", "date_approve"
             ]
             
-            # Ejecutar búsqueda
+            # Execute search
             orders = odoo.search_read(
                 "purchase.order", 
                 domain, 
@@ -72,7 +72,7 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                 order=filters.order
             )
             
-            # Obtener el conteo total sin límite para paginación
+            # Get the total count without limit for pagination
             total_count = odoo.execute_method("purchase.order", "search_count", domain)
             
             return {
@@ -87,24 +87,24 @@ def register_purchase_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    @mcp.tool(description="Crear una nueva orden de compra")
+    @mcp.tool(description="Create a new purchase order")
     def create_purchase_order(
         ctx: Context,
         order: PurchaseOrderCreate
     ) -> Dict[str, Any]:
         """
-        Crea una nueva orden de compra
+        Create a new purchase order
         
         Args:
-            order: Datos de la orden a crear
+            order: Details of the order to be created
             
         Returns:
-            Respuesta con el resultado de la operación
+            Response with the result of the operation
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Preparar valores para la orden
+            # Prepare values for the order
             order_vals = {
                 "partner_id": order.partner_id,
                 "order_line": []
@@ -115,9 +115,9 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                     datetime.strptime(order.date_order, "%Y-%m-%d")
                     order_vals["date_order"] = order.date_order
                 except ValueError:
-                    return {"success": False, "error": f"Formato de fecha inválido: {order.date_order}. Use YYYY-MM-DD."}
+                    return {"success": False, "error": f"Invalid date format: {order.date_order}. Use YYYY-MM-DD."}
             
-            # Preparar líneas de orden
+            # Prepare order lines
             for line in order.order_lines:
                 line_vals = [
                     0, 0, {
@@ -131,10 +131,10 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                     
                 order_vals["order_line"].append(line_vals)
             
-            # Crear orden
+            # Create order
             order_id = odoo.execute_method("purchase.order", "create", order_vals)
             
-            # Obtener información de la orden creada
+            # Get information from the created order
             order_info = odoo.execute_method("purchase.order", "read", [order_id], ["name"])[0]
             
             return {
@@ -148,42 +148,42 @@ def register_purchase_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    @mcp.tool(description="Analiza el rendimiento de los proveedores")
+    @mcp.tool(description="Analyze supplier performance")
     def analyze_supplier_performance(
         ctx: Context,
         params: SupplierPerformanceInput
     ) -> Dict[str, Any]:
         """
-        Analiza el rendimiento de los proveedores en un período específico
+        Analyze supplier performance over a specific period
         
         Args:
-            params: Parámetros para el análisis
+            params: Parameters for the analysis
             
         Returns:
-            Diccionario con resultados del análisis
+            Dictionary with analysis results
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Validar fechas
+            # Validate dates
             try:
                 datetime.strptime(params.date_from, "%Y-%m-%d")
                 datetime.strptime(params.date_to, "%Y-%m-%d")
             except ValueError:
-                return {"success": False, "error": "Formato de fecha inválido. Use YYYY-MM-DD."}
+                return {"success": False, "error": "Invalid date format. Use YYYY-MM-DD."}
             
-            # Construir dominio para órdenes confirmadas
+            # Build domain for confirmed orders
             domain = [
                 ("date_order", ">=", params.date_from),
                 ("date_order", "<=", params.date_to),
                 ("state", "in", ["purchase", "done"])
             ]
             
-            # Filtrar por proveedores específicos si se proporcionan
+            # Filter by specific suppliers if provided
             if params.supplier_ids:
                 domain.append(("partner_id", "in", params.supplier_ids))
             
-            # Obtener datos de compras
+            # Get purchase data
             purchase_data = odoo.search_read(
                 "purchase.order",
                 domain,
@@ -193,11 +193,11 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                 ]
             )
             
-            # Agrupar por proveedor
+            # Group by supplier
             supplier_data = {}
             for order in purchase_data:
                 supplier_id = order["partner_id"][0] if order["partner_id"] else 0
-                supplier_name = order["partner_id"][1] if order["partner_id"] else "Desconocido"
+                supplier_name = order["partner_id"][1] if order["partner_id"] else "Unknown"
                 
                 if supplier_id not in supplier_data:
                     supplier_data[supplier_id] = {
@@ -213,7 +213,7 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                 supplier_data[supplier_id]["order_count"] += 1
                 supplier_data[supplier_id]["total_amount"] += order["amount_total"]
                 
-                # Calcular métricas de entrega a tiempo
+                # Calculate on-time delivery metrics
                 if order.get("effective_date") and order.get("date_planned"):
                     effective_date = datetime.strptime(order["effective_date"].split(" ")[0], "%Y-%m-%d")
                     planned_date = datetime.strptime(order["date_planned"].split(" ")[0], "%Y-%m-%d")
@@ -237,31 +237,31 @@ def register_purchase_tools(mcp: FastMCP) -> None:
                     else:
                         supplier_data[supplier_id]["late_delivery_count"] += 1
             
-            # Calcular métricas adicionales
+            # Calculate additional metrics
             for supplier_id, data in supplier_data.items():
-                # Calcular promedio de días de retraso
+                # Calculate average delay days
                 delay_days = [order["delay_days"] for order in data["orders"] if "delay_days" in order]
                 if delay_days:
                     data["avg_delay_days"] = sum(delay_days) / len(delay_days)
                 
-                # Calcular porcentaje de entregas a tiempo
+                # Calculate on-time delivery rate
                 total_deliveries = data["on_time_delivery_count"] + data["late_delivery_count"]
                 if total_deliveries > 0:
                     data["on_time_delivery_rate"] = (data["on_time_delivery_count"] / total_deliveries) * 100
                 else:
                     data["on_time_delivery_rate"] = 0
                 
-                # Eliminar lista detallada de órdenes para reducir tamaño de respuesta
+                # Remove detailed list of orders to reduce response size
                 data.pop("orders", None)
             
-            # Ordenar proveedores por monto total
+            # Sort suppliers by total amount
             top_suppliers = sorted(
                 supplier_data.items(),
                 key=lambda x: x[1]["total_amount"],
                 reverse=True
             )
             
-            # Preparar resultado
+            # Prepare result
             result = {
                 "period": {
                     "from": params.date_from,

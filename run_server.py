@@ -17,13 +17,11 @@ from mcp.server.lowlevel import Server
 import mcp.types as types
 
 from odoo_mcp.server import mcp  # FastMCP instance from our code
+from odoo_mcp.odoo_client import load_config
 
 from starlette.applications import Starlette
 from starlette.routing import Route, Mount
 from starlette.responses import Response
-
-HOST = "127.0.0.1"
-PORT = 8008
 
 
 def setup_logging():
@@ -77,44 +75,45 @@ def main() -> int:
         
         logger.info(f"MCP object type: {type(mcp)}")
         
-        # Create an SSE transport at an endpoint
-        sse = SseServerTransport("/messages/")
+        config = load_config()
+        if config.get("mcp_http_host") and config.get("mcp_http_port"):
+            # Create an SSE transport at an endpoint
+            sse = SseServerTransport("/messages/")
 
-        # Define handler functions
-        async def handle_sse(request):
-            async with sse.connect_sse(
-                request.scope, request.receive, request._send
-            ) as streams:
-                await mcp._mcp_server.run(
-                    streams[0], streams[1], mcp._mcp_server.create_initialization_options()
-                )
-            # Return empty response to avoid NoneType error
-            return Response()
+            # Define handler functions
+            async def handle_sse(request):
+                async with sse.connect_sse(
+                    request.scope, request.receive, request._send
+                ) as streams:
+                    await mcp._mcp_server.run(
+                        streams[0], streams[1], mcp._mcp_server.create_initialization_options()
+                    )
+                # Return empty response to avoid NoneType error
+                return Response()
 
-        # Create Starlette routes for SSE and message handling
-        routes = [
-            Route("/sse", endpoint=handle_sse, methods=["GET"]),
-            Mount("/messages/", app=sse.handle_post_message),
-        ]
+            # Create Starlette routes for SSE and message handling
+            routes = [
+                Route("/", endpoint=handle_sse, methods=["GET"]),
+                Mount("/messages/", app=sse.handle_post_message),
+            ]
 
-        # Create and run Starlette app
-        starlette_app = Starlette(routes=routes)
-        uvicorn.run(starlette_app, host=HOST, port=PORT)
-# '''
-#         # Run server in stdio mode like the official examples
-#         async def arun():
-#             logger.info("Starting Odoo MCP server with stdio transport...")
-#             async with stdio_server() as streams:
-#                 logger.info("Stdio server initialized, running MCP server...")
-#                 await mcp._mcp_server.run(
-#                     streams[0], streams[1], mcp._mcp_server.create_initialization_options()
-#                 )
-                
-#         # Run server
-#         anyio.run(arun)
-#         logger.info("MCP server stopped normally")
-#         return 0
-# '''
+            # Create and run Starlette app
+            starlette_app = Starlette(routes=routes)
+            uvicorn.run(starlette_app, host=config.get("mcp_http_host"), port=config.get("mcp_http_port"))
+        else:
+            # Run server in stdio mode like the official examples
+            async def arun():
+                logger.info("Starting Odoo MCP server with stdio transport...")
+                async with stdio_server() as streams:
+                    logger.info("Stdio server initialized, running MCP server...")
+                    await mcp._mcp_server.run(
+                        streams[0], streams[1], mcp._mcp_server.create_initialization_options()
+                    )
+                    
+            # Run server
+            anyio.run(arun)
+            logger.info("MCP server stopped normally")
+            return 0
         
     except Exception as e:
         logger.error(f"Fatal error: {e}", exc_info=True)

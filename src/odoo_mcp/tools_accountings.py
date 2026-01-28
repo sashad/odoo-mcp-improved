@@ -1,5 +1,5 @@
 """
-Implementación de herramientas (tools) para contabilidad en MCP-Odoo
+Implementation of accounting tools in MCP-Odoo
 """
 
 from typing import Dict, List, Any, Optional
@@ -13,26 +13,26 @@ from .models import (
 )
 
 def register_accounting_tools(mcp: FastMCP) -> None:
-    """Registra herramientas relacionadas con contabilidad"""
+    """Register accounting-related tools"""
     
-    @mcp.tool(description="Busca asientos contables con filtros")
+    @mcp.tool(description="Search accounting entries using filters")
     def search_journal_entries(
         ctx: Context,
         filters: JournalEntryFilter
     ) -> Dict[str, Any]:
         """
-        Busca asientos contables según los filtros especificados
+        Search for accounting entries based on the specified filters
         
         Args:
-            filters: Filtros para la búsqueda de asientos
+            filters: Filters for entry search
             
         Returns:
-            Diccionario con resultados de la búsqueda
+            Dictionary with search results
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Construir dominio de búsqueda
+            # Build search domain
             domain = []
             
             if filters.date_from:
@@ -40,14 +40,14 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                     datetime.strptime(filters.date_from, "%Y-%m-%d")
                     domain.append(("date", ">=", filters.date_from))
                 except ValueError:
-                    return {"success": False, "error": f"Formato de fecha inválido: {filters.date_from}. Use YYYY-MM-DD."}
+                    return {"success": False, "error": f"Invalid date format: {filters.date_from}. Use YYYY-MM-DD."}
                 
             if filters.date_to:
                 try:
                     datetime.strptime(filters.date_to, "%Y-%m-%d")
                     domain.append(("date", "<=", filters.date_to))
                 except ValueError:
-                    return {"success": False, "error": f"Formato de fecha inválido: {filters.date_to}. Use YYYY-MM-DD."}
+                    return {"success": False, "error": f"Invalid date format: {filters.date_to}. Use YYYY-MM-DD."}
                 
             if filters.journal_id:
                 domain.append(("journal_id", "=", filters.journal_id))
@@ -55,13 +55,13 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             if filters.state:
                 domain.append(("state", "=", filters.state))
             
-            # Campos a recuperar
+            # Fields to retrieve
             fields = [
                 "name", "ref", "date", "journal_id", "state", 
                 "amount_total", "amount_total_signed", "line_ids"
             ]
             
-            # Ejecutar búsqueda
+            # Execute search
             entries = odoo.search_read(
                 "account.move", 
                 domain, 
@@ -70,10 +70,10 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                 offset=filters.offset
             )
             
-            # Obtener el conteo total sin límite para paginación
+            # Get the total count without limit for pagination
             total_count = odoo.execute_method("account.move", "search_count", domain)
             
-            # Para cada asiento, obtener información resumida de las líneas
+            # For each entry, get summarized information from the lines
             for entry in entries:
                 if entry.get("line_ids"):
                     line_ids = entry["line_ids"]
@@ -83,7 +83,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                         fields=["name", "account_id", "partner_id", "debit", "credit", "balance"]
                     )
                     entry["lines"] = lines
-                    # Eliminar la lista de IDs para reducir tamaño
+                    # Remove the list of IDs to reduce size
                     entry.pop("line_ids", None)
             
             return {
@@ -98,34 +98,34 @@ def register_accounting_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    @mcp.tool(description="Crea un nuevo asiento contable")
+    @mcp.tool(description="Create a new accounting entry")
     def create_journal_entry(
         ctx: Context,
         entry: JournalEntryCreate
     ) -> Dict[str, Any]:
         """
-        Crea un nuevo asiento contable
+        Create a new accounting entry
         
         Args:
-            entry: Datos del asiento a crear
+            entry: Details of the entry to be created
             
         Returns:
-            Respuesta con el resultado de la operación
+            Response with the result of the operation
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Verificar que el debe y el haber cuadran
+            # Verify that the debit and credit are balanced
             total_debit = sum(line.debit for line in entry.lines)
             total_credit = sum(line.credit for line in entry.lines)
             
             if round(total_debit, 2) != round(total_credit, 2):
                 return {
                     "success": False, 
-                    "error": f"El asiento no está cuadrado. Debe: {total_debit}, Haber: {total_credit}"
+                    "error": f"The entry is not balanced. Debit: {total_debit}, Credit: {total_credit}"
                 }
             
-            # Preparar valores para el asiento
+            # Prepare values for the entry
             move_vals = {
                 "journal_id": entry.journal_id,
                 "line_ids": []
@@ -139,9 +139,9 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                     datetime.strptime(entry.date, "%Y-%m-%d")
                     move_vals["date"] = entry.date
                 except ValueError:
-                    return {"success": False, "error": f"Formato de fecha inválido: {entry.date}. Use YYYY-MM-DD."}
+                    return {"success": False, "error": f"Invalid date format: {entry.date}. Use YYYY-MM-DD."}
             
-            # Preparar líneas del asiento
+            # Prepare entry lines
             for line in entry.lines:
                 line_vals = [
                     0, 0, {
@@ -157,10 +157,10 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                     
                 move_vals["line_ids"].append(line_vals)
             
-            # Crear asiento
+            # Create entry
             move_id = odoo.execute_method("account.move", "create", move_vals)
             
-            # Obtener información del asiento creado
+            # Get information from the created entry
             move_info = odoo.execute_method("account.move", "read", [move_id], ["name", "state"])[0]
             
             return {
@@ -175,38 +175,38 @@ def register_accounting_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    @mcp.tool(description="Calcula ratios financieros clave")
+    @mcp.tool(description="Calculate key financial ratios")
     def analyze_financial_ratios(
         ctx: Context,
         params: FinancialRatioInput
     ) -> Dict[str, Any]:
         """
-        Calcula ratios financieros clave para un período específico
+        Calculate key financial ratios for a specific period
         
         Args:
-            params: Parámetros para el análisis
+            params: Parameters for the analysis
             
         Returns:
-            Diccionario con los ratios calculados
+            Dictionary with the calculated ratios
         """
         odoo = ctx.request_context.lifespan_context.odoo
         
         try:
-            # Validar fechas
+            # Validate dates
             try:
                 datetime.strptime(params.date_from, "%Y-%m-%d")
                 datetime.strptime(params.date_to, "%Y-%m-%d")
             except ValueError:
-                return {"success": False, "error": "Formato de fecha inválido. Use YYYY-MM-DD."}
+                return {"success": False, "error": "Invalid date format. Use YYYY-MM-DD."}
             
-            # Verificar qué ratios se solicitan
+            # Check which ratios are requested
             requested_ratios = params.ratios
             
-            # Inicializar resultado
+            # Initialize result
             ratios = {}
             
-            # Obtener datos del balance general
-            # Activos
+            # Get data from the balance sheet
+            # Assets
             assets_domain = [
                 ("account_id.user_type_id.internal_group", "=", "asset"),
                 ("date", ">=", params.date_from),
@@ -222,7 +222,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             total_assets = sum(line["balance"] for line in assets_data)
             
-            # Activos corrientes
+            # Current assets
             current_assets_domain = [
                 ("account_id.user_type_id.internal_group", "=", "asset"),
                 ("account_id.user_type_id.type", "=", "liquidity"),
@@ -239,7 +239,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             current_assets = sum(line["balance"] for line in current_assets_data)
             
-            # Pasivos
+            # Liabilities
             liabilities_domain = [
                 ("account_id.user_type_id.internal_group", "=", "liability"),
                 ("date", ">=", params.date_from),
@@ -255,7 +255,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             total_liabilities = sum(line["balance"] for line in liabilities_data)
             
-            # Pasivos corrientes
+            # Current liabilities
             current_liabilities_domain = [
                 ("account_id.user_type_id.internal_group", "=", "liability"),
                 ("account_id.user_type_id.type", "=", "payable"),
@@ -272,7 +272,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             current_liabilities = sum(line["balance"] for line in current_liabilities_data)
             
-            # Patrimonio
+            # Equity
             equity_domain = [
                 ("account_id.user_type_id.internal_group", "=", "equity"),
                 ("date", ">=", params.date_from),
@@ -288,7 +288,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             total_equity = sum(line["balance"] for line in equity_data)
             
-            # Ingresos
+            # Income
             income_domain = [
                 ("account_id.user_type_id.internal_group", "=", "income"),
                 ("date", ">=", params.date_from),
@@ -304,7 +304,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             total_income = sum(line["balance"] for line in income_data)
             
-            # Gastos
+            # Expenses
             expense_domain = [
                 ("account_id.user_type_id.internal_group", "=", "expense"),
                 ("date", ">=", params.date_from),
@@ -320,12 +320,12 @@ def register_accounting_tools(mcp: FastMCP) -> None:
             
             total_expenses = sum(line["balance"] for line in expense_data)
             
-            # Calcular beneficio neto
+            # Calculate net income
             net_income = total_income - total_expenses
             
-            # Calcular ratios solicitados
+            # Calculate requested ratios
             if "liquidity" in requested_ratios:
-                # Ratio de liquidez corriente
+                # Current liquidity ratio
                 current_ratio = 0
                 if current_liabilities != 0:
                     current_ratio = current_assets / abs(current_liabilities)
@@ -337,17 +337,17 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                 }
             
             if "profitability" in requested_ratios:
-                # Rentabilidad sobre activos (ROA)
+                # Return on assets (ROA)
                 roa = 0
                 if total_assets != 0:
                     roa = (net_income / total_assets) * 100
                 
-                # Rentabilidad sobre patrimonio (ROE)
+                # Return on equity (ROE)
                 roe = 0
                 if total_equity != 0:
                     roe = (net_income / total_equity) * 100
                 
-                # Margen de beneficio neto
+                # Net profit margin
                 profit_margin = 0
                 if total_income != 0:
                     profit_margin = (net_income / total_income) * 100
@@ -361,12 +361,12 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                 }
             
             if "debt" in requested_ratios:
-                # Ratio de endeudamiento
+                # Debt ratio
                 debt_ratio = 0
                 if total_assets != 0:
                     debt_ratio = (abs(total_liabilities) / total_assets) * 100
                 
-                # Ratio de apalancamiento
+                # Leverage ratio
                 leverage_ratio = 0
                 if total_equity != 0:
                     leverage_ratio = (abs(total_liabilities) / total_equity)
@@ -379,7 +379,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                 }
             
             if "efficiency" in requested_ratios:
-                # Rotación de activos
+                # Asset turnover
                 asset_turnover = 0
                 if total_assets != 0:
                     asset_turnover = total_income / total_assets
@@ -388,7 +388,7 @@ def register_accounting_tools(mcp: FastMCP) -> None:
                     "asset_turnover": asset_turnover
                 }
             
-            # Preparar resultado
+            # Prepare result
             result = {
                 "period": {
                     "from": params.date_from,
