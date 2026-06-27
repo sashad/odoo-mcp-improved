@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Standalone script to run the Odoo MCP server 
+Standalone script to run the Odoo MCP server
 Uses the same approach as in the official MCP SDK examples
 """
 import sys
@@ -24,35 +24,35 @@ from starlette.routing import Route, Mount
 from starlette.responses import Response
 
 
-def setup_logging():
+def setup_logging(user_name):
     """Set up logging to both console and file"""
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
     os.makedirs(log_dir, exist_ok=True)
-    
+
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"mcp_server_{timestamp}.log")
-    
+    log_file = os.path.join(log_dir, f"mcp_server_{user_name}_{timestamp}.log")
+
     # Configure logging
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    
+
     # Console handler
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    
+
     # File handler
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.DEBUG)
-    
+
     # Format for both handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     console_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)
-    
+
     # Add handlers to logger
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
-    
+
     return logger
 
 
@@ -60,10 +60,11 @@ def main() -> int:
     """
     Run the MCP server based on the official examples
     """
-    logger = setup_logging()
-    
+    user_name = os.getenv("USER_NAME", "default_user")
+    logger = setup_logging(user_name)
+
     try:
-        logger.info("=== ODOO MCP SERVER STARTING ===")
+        logger.info(f"=== ODOO MCP SERVER STARTING FOR USER: {user_name} ===")
         logger.info(f"Python version: {sys.version}")
         logger.info("Environment variables:")
         for key, value in os.environ.items():
@@ -72,9 +73,9 @@ def main() -> int:
                     logger.info(f"  {key}: ***hidden***")
                 else:
                     logger.info(f"  {key}: {value}")
-        
+
         logger.info(f"MCP object type: {type(mcp)}")
-        
+
         config = load_config()
         if config.get("mcp_http_host") and config.get("mcp_http_port"):
             # Create an SSE transport at an endpoint
@@ -103,22 +104,22 @@ def main() -> int:
         else:
             # Run server in stdio mode like the official examples
             async def arun():
-                logger.info("Starting Odoo MCP server with stdio transport...")
+                logger.info(f"Starting Odoo MCP server with stdio transport for user: {user_name}...")
                 async with stdio_server() as streams:
                     logger.info("Stdio server initialized, running MCP server...")
                     await mcp._mcp_server.run(
                         streams[0], streams[1], mcp._mcp_server.create_initialization_options()
                     )
-                    
+
             # Run server
             anyio.run(arun)
-            logger.info("MCP server stopped normally")
+            logger.info(f"MCP server stopped normally for user: {user_name}")
             return 0
-        
+
     except Exception as e:
-        logger.error(f"Fatal error: {e}", exc_info=True)
+        logger.error(f"Fatal error for user {user_name}: {e}", exc_info=True)
         return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

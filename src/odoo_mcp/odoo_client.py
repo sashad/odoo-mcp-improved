@@ -387,11 +387,11 @@ def load_config():
     ):
         if all(
             var in os.environ
-            for var in ["ODOO_MCP_HTTP_HOST", "ODOO_MCP_HTTP_PORT"]
+            for var in ["MCP_HTTP_HOST", "MCP_HTTP_PORT"]
         ):
             optional = {
-                "mcp_http_host": os.environ["ODOO_MCP_HTTP_HOST"],
-                "mcp_http_port": os.environ["ODOO_MCP_HTTP_PORT"],
+                "mcp_http_host": os.environ["MCP_HTTP_HOST"],
+                "mcp_http_port": os.environ["MCP_HTTP_PORT"],
             }
         else:
             optional = {}

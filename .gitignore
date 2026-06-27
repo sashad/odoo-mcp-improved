@@ -50,3 +50,4 @@ coverage.xml
 *.cover
 .hypothesis/ 
 .github/
+.aider*

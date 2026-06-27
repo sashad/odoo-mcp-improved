@@ -25,6 +25,8 @@ ENV ODOO_USERNAME=""
 ENV ODOO_PASSWORD=""
 ENV ODOO_TIMEOUT="30"
 ENV ODOO_VERIFY_SSL="1"
+ENV MCP_HTTP_HOST="0.0.0.0"
+ENV MCP_HTTP_PORT="8000"
 ENV DEBUG="0"
 
 # Make run_server.py executable
@@ -34,4 +36,4 @@ RUN chmod +x run_server.py
 ENV PYTHONUNBUFFERED=1
 
 # Run the custom MCP server script instead of the module
-ENTRYPOINT ["python", "run_server.py"] 
+ENTRYPOINT ["python", "run_server.py"]
