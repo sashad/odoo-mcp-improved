@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10.12-slim
 
 WORKDIR /app
 
@@ -34,6 +34,10 @@ RUN chmod +x run_server.py
 
 # Set stdout/stderr to unbuffered mode
 ENV PYTHONUNBUFFERED=1
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD curl -f http://localhost:8000/healthz || exit 1
 
 # Run the custom MCP server script instead of the module
 ENTRYPOINT ["python", "run_server.py"]
